@@ -1,16 +1,21 @@
 pipeline {
     agent any
 
+    environment {
+        TF_IN_AUTOMATION = "true"
+    }
+
     stages {
+
         stage('Checkout') {
             steps {
-                git 'https://github.com/Abadulhassan/terraform-deployed.git'
+                git branch: 'main', url: 'https://github.com/Abadulhassan/terraform-deployed.git'
             }
         }
 
         stage('Terraform Init') {
             steps {
-                sh 'terraform init'
+                sh 'terraform init -input=false'
             }
         }
 
@@ -22,13 +27,13 @@ pipeline {
 
         stage('Terraform Plan') {
             steps {
-                sh 'terraform plan -out=tfplan'
+                sh 'terraform plan -input=false -out=tfplan'
             }
         }
 
         stage('Terraform Apply') {
             steps {
-                sh 'terraform apply -auto-approve tfplan'
+                sh 'terraform apply -input=false -auto-approve tfplan'
             }
         }
     }
