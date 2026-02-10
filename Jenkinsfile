@@ -11,6 +11,7 @@ pipeline {
             choices: ['plan', 'apply', 'destroy'],
             description: 'Terraform action to execute'
         )
+    }
 
     stages {
 
