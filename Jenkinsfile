@@ -13,6 +13,8 @@ pipeline {
         )
     }
 
+    
+
     stages {
 
         stage('Checkout Code') {
@@ -21,6 +23,16 @@ pipeline {
             }
         }
 
+
+stage('Build Lambda Package') {
+    steps {
+        dir('lambda') {
+            sh 'npm install'
+        }
+    }
+}
+
+        
         stage('Terraform Init') {
             steps {
                 sh 'terraform init -input=false'
