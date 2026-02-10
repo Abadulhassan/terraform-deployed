@@ -11,7 +11,6 @@ pipeline {
             choices: ['plan', 'apply', 'destroy'],
             description: 'Terraform action to execute'
         )
-    }
 
     stages {
 
@@ -34,45 +33,21 @@ pipeline {
         }
 
         stage('Terraform Plan') {
-            when {
-                expression { params.ACTION == 'plan' || params.ACTION == 'apply' }
-            }
+            when { expression { params.ACTION == 'plan' || params.ACTION == 'apply' } }
             steps {
                 sh 'terraform plan -input=false -out=tfplan'
             }
         }
 
-        stage('Approval Before Apply') {
-            when {
-                expression { params.ACTION == 'apply' }
-            }
-            steps {
-                input message: 'Approve Terraform Apply?', ok: 'Deploy'
-            }
-        }
-
         stage('Terraform Apply') {
-            when {
-                expression { params.ACTION == 'apply' }
-            }
+            when { expression { params.ACTION == 'apply' } }
             steps {
                 sh 'terraform apply -input=false -auto-approve tfplan'
             }
         }
 
-        stage('Approval Before Destroy') {
-            when {
-                expression { params.ACTION == 'destroy' }
-            }
-            steps {
-                input message: 'WARNING: Destroy entire infrastructure?', ok: 'Destroy'
-            }
-        }
-
         stage('Terraform Destroy') {
-            when {
-                expression { params.ACTION == 'destroy' }
-            }
+            when { expression { params.ACTION == 'destroy' } }
             steps {
                 sh 'terraform destroy -input=false -auto-approve'
             }
