@@ -1,6 +1,10 @@
 const mysql = require('mysql2/promise');
 
 exports.handler = async (event) => {
+  console.log("EVENT:", JSON.stringify(event));
+
+  const method = event.httpMethod;   // <-- correct for your API
+
   const conn = await mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -8,14 +12,39 @@ exports.handler = async (event) => {
     database: process.env.DB_NAME
   });
 
-  if (event.requestContext.http.method === "GET") {
+  if (method === "GET") {
     const [rows] = await conn.query("SELECT * FROM users");
-    return { statusCode: 200, body: JSON.stringify(rows) };
+    return {
+      statusCode: 200,
+      body: JSON.stringify(rows)
+    };
   }
 
-  if (event.requestContext.http.method === "POST") {
+  if (method === "POST") {
     const body = JSON.parse(event.body);
-    await conn.query("INSERT INTO users(name,email) VALUES (?,?)",[body.name, body.email]);
-    return { statusCode: 201, body: "User created" };
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        email VARCHAR(150) NOT NULL UNIQUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    
+  
+    await conn.query(
+      "INSERT INTO users(name,email) VALUES (?,?)",
+      [body.name, body.email]
+    );
+
+    return {
+      statusCode: 201,
+      body: JSON.stringify({ message: "User created" })
+    };
   }
+
+  return {
+    statusCode: 400,
+    body: JSON.stringify({ message: "Unsupported method" })
+  };
 };
